@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Notes</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container">
+  <h2>My Notes</h2>
+
+  <input id="search" placeholder="Search notes..." onkeyup="searchNotes()">
+  <input id="tag" placeholder="Filter by tag">
+  <button onclick="filterByTag()">Filter</button>
+
+  <hr><br>
+  <div id="notes"></div>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+async function loadNotes() {
+  const res = await fetch("http://localhost:5000/api/notes", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await res.json();
+  render(data);
+}
+
+function render(data) {
+  notes.innerHTML = "";
+  data.forEach(n => {
+    notes.innerHTML += `
+      <div class="note">
+        <h4>${n.title}</h4>
+        <p>${n.content}</p>
+        <small>${new Date(n.createdAt).toLocaleString()}</small>
+      </div>
+    `;
+  });
+}
+
+async function searchNotes() {
+  const q = search.value;
+  if (!q) return loadNotes();
+
+  const res = await fetch(
+    `http://localhost:5000/api/notes/search?q=${q}`,
+    { headers: { "Authorization": "Bearer " + token } }
+  );
+  render(await res.json());
+}
+
+async function filterByTag() {
+  const res = await fetch(
+    `http://localhost:5000/api/notes/tag/${tag.value}`,
+    { headers: { "Authorization": "Bearer " + token } }
+  );
+  render(await res.json());
+}
+
+loadNotes();
+</script>
+
+</body>
+</html>
